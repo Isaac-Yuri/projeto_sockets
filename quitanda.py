@@ -1,29 +1,39 @@
 import socket
+import threading
 
-HOST = 'localhost'
-PORT = 8080
+
+def lidar_com_cliente(socket_cliente, endereco):
+    socket_cliente.send("Bem vindo ao servidor!".encode("utf-8"))
+    while True:
+
+        data = socket_cliente.recv(4096)
+        if not data:
+            break
+
+        print(f"Mensagem recebida: {data.decode("utf-8")}")
+
+        socket_cliente.send(bytes("Recebemos sua mensagem!", "utf-8"))
+
+    socket_cliente.close()
+    print(f"Conexão com {endereco} foi encerrada.")
+
 
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-server_socket.bind((HOST, PORT))
-
+endereco = ("localhost", 8080)
+server_socket.bind(endereco)
 server_socket.listen(5)
 
-print(f"Servidor escutando em {HOST}:{PORT}")
+print(f"Servidor escutando em {endereco[0]}:{endereco[1]}")
 
 while True:
-    client_socket, addr = server_socket.accept()
-    
-    print(f"Conexão recebida de {addr[0]}:{addr[1]}")
+    try:
+        client_socket, address = server_socket.accept()
+        print(f"Conexão estabelecida com {address[0]}:{address[1]}")
 
-    data = client_socket.recv(1024)
-    if not data:
+        thread_cliente = threading.Thread(target=lidar_com_cliente, args=(client_socket, address))
+        thread_cliente.start()
+    except KeyboardInterrupt:
+        print("Servidor Encerrado!")
         break
-    
-    print(f"Mensagem recebida: {data.decode()}")
-
-    client_socket.sendall("Mensagem recebida pelo servidor".encode())
-
-    client_socket.close()
 
 server_socket.close()
