@@ -38,7 +38,11 @@ while True:
     id_produto = input(
         "Digite qual produto deseja comprar pelo seu ID ou digite 0 para finalizar: ")
     if id_produto == "0":
+        # Transforma a lista de produtos comprados em string e envia para o servidor
+        produtos_comprados = json.dumps(produtos_comprados)
+        cliente.send(produtos_comprados.encode())
         break
+    
     quantidade = int(input("Quantas unidades deseja comprar? "))
     produto = {"id": id_produto, "quantidade": quantidade}
     confirmar = input(f"""Então você quer {produto['quantidade']} unidades do produto com id {produto['id']}?
@@ -50,9 +54,5 @@ Digite 0 para confirmar ou 1 para cancelar a compra: """)
         print("Produto adicionado com sucesso a lista de compras!")
     else:
         print("Compra cancelada!")
-
-# Transforma a lista de produtos comprados em string e envia para o servidor
-produtos_comprados = json.dumps(produtos_comprados)
-cliente.send(produtos_comprados.encode())
 
 cliente.close()
