@@ -14,10 +14,16 @@ def lidar_com_cliente(socket_cliente: SocketType, endereco):
         nome = data_decoded.split()
         print(f"Nome do consumidor conectado: {data_decoded}")
 
-        socket_cliente.send(f"Recebemos sua mensagem {nome[0]}!".encode("utf-8"))
+        socket_cliente.send(f"Você quer comprar frutas ou verduras {nome[0]}? \nDigite V para verduras e F para frutas >>> ".encode("utf-8"))
+
+        # Recebe que tipo de produto o cliente quer comprar
+        data = socket_cliente.recv(1024).decode()
+        print(f"O cliente {nome[0]} escolheu a opção {data}.")
+
+        # Mensagem de encerramento da conexão
+        print(f"Conexão com {nome[0]} foi encerrada.")
 
     socket_cliente.close()
-    print(f"Conexão com {endereco} foi encerrada.")
 
 
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
