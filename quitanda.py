@@ -11,9 +11,10 @@ def lidar_com_cliente(socket_cliente: SocketType, endereco):
             break
 
         data_decoded = data.decode("utf-8")
-        print(f"Mensagem recebida de {endereco}: {data_decoded}")
+        nome = data_decoded.split()
+        print(f"Nome do consumidor conectado: {data_decoded}")
 
-        socket_cliente.send("Recebemos sua mensagem!".encode("utf-8"))
+        socket_cliente.send(f"Recebemos sua mensagem {nome[0]}!".encode("utf-8"))
 
     socket_cliente.close()
     print(f"Conexão com {endereco} foi encerrada.")

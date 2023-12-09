@@ -7,7 +7,7 @@ cliente = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 cliente.connect((HOST, PORT))
 
-msg = input("Digite uma mensagem a ser enviada para o servidor: ")
+msg = input("Digite seu nome completo: ")
 
 cliente.sendall(msg.encode())
 
