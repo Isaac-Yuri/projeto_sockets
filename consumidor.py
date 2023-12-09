@@ -15,4 +15,8 @@ resposta = cliente.recv(1024)
 
 print(f"Resposta do servidor: {resposta.decode()}")
 
+resposta = cliente.recv(1024)
+
+print(resposta.decode())
+
 cliente.close()

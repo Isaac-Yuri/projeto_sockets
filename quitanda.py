@@ -1,18 +1,19 @@
 import socket
 import threading
+from socket import SocketType
 
 
-def lidar_com_cliente(socket_cliente, endereco):
+def lidar_com_cliente(socket_cliente: SocketType, endereco):
     socket_cliente.send("Bem vindo ao servidor!".encode("utf-8"))
     while True:
-
-        data = socket_cliente.recv(4096)
+        data = socket_cliente.recv(1024)
         if not data:
             break
 
-        print(f"Mensagem recebida: {data.decode("utf-8")}")
+        data_decoded = data.decode("utf-8")
+        print(f"Mensagem recebida de {endereco}: {data_decoded}")
 
-        socket_cliente.send(bytes("Recebemos sua mensagem!", "utf-8"))
+        socket_cliente.send("Recebemos sua mensagem!".encode("utf-8"))
 
     socket_cliente.close()
     print(f"Conexão com {endereco} foi encerrada.")
@@ -30,7 +31,8 @@ while True:
         client_socket, address = server_socket.accept()
         print(f"Conexão estabelecida com {address[0]}:{address[1]}")
 
-        thread_cliente = threading.Thread(target=lidar_com_cliente, args=(client_socket, address))
+        thread_cliente = threading.Thread(
+            target=lidar_com_cliente, args=(client_socket, address))
         thread_cliente.start()
     except KeyboardInterrupt:
         print("Servidor Encerrado!")
