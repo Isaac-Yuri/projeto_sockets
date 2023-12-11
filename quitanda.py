@@ -16,9 +16,22 @@ def criar_menu(produtos: list) -> str:
 
 def montar_resumo_compra(produtos_comprados):
     resumo = f"PRODUTO  | PREÇO | QUANTIDADE |  TOTAL  | \n"
+    total = 0
     for produto in produtos_comprados:
         preco_total = produto[1] * produto[2]
-        resumo += f"{produto[0]}| R${produto[1]:.1f} |     {produto[2]}      |  R${preco_total:.1f} |\n"
+        total += preco_total
+        # Os ifs abaixo são para questão de layout do resumo
+        if produto[2] >= 10:
+            if preco_total < 10:
+                resumo += f"{produto[0]}| R${produto[1]:.1f} |     {produto[2]}     |  R${preco_total:.1f}  |\n"
+            else:
+                resumo += f"{produto[0]}| R${produto[1]:.1f} |     {produto[2]}     |  R${preco_total:.1f} |\n"
+        else:
+            if preco_total < 10:
+                resumo += f"{produto[0]}| R${produto[1]:.1f} |     {produto[2]}      |  R${preco_total:.1f}  |\n"
+            else:
+                resumo += f"{produto[0]}| R${produto[1]:.1f} |     {produto[2]}      |  R${preco_total:.1f} |\n"
+    resumo += f"O valor total da compra foi de R${total}"
     return resumo
 
 
