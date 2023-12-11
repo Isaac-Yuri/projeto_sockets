@@ -14,9 +14,6 @@ def linha(tamanho=40):
 msg = input("Digite seu nome completo: ")
 cliente.sendall(msg.encode())
 
-resposta = cliente.recv(1024)
-print(f"Resposta do servidor: {resposta.decode()}")
-
 
 resposta = cliente.recv(1024)
 while True:

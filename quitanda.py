@@ -23,14 +23,15 @@ def montar_resumo_compra(produtos_comprados):
         # Os ifs abaixo são para questão de layout do resumo
         if produto[2] >= 10:
             if preco_total < 10:
-                resumo += f"{produto[0]}| R${produto[1]:.1f} |     {produto[2]}     |  R${preco_total:.1f}  |\n"
+                resumo += f"{produto[0]}| R${produto[1]                                             :.1f} |     {produto[2]}     |  R${preco_total:.1f}  |\n"
             else:
-                resumo += f"{produto[0]}| R${produto[1]:.1f} |     {produto[2]}     |  R${preco_total:.1f} |\n"
+                resumo += f"{produto[0]}| R${produto[1]                                             :.1f} |     {produto[2]}     |  R${preco_total:.1f} |\n"
         else:
             if preco_total < 10:
-                resumo += f"{produto[0]}| R${produto[1]:.1f} |     {produto[2]}      |  R${preco_total:.1f}  |\n"
+                resumo += f"{produto[0]}| R${produto[1]:.1f} |     {
+                    produto[2]}      |  R${preco_total:.1f}  |\n"
             else:
-                resumo += f"{produto[0]}| R${produto[1]:.1f} |     {produto[2]}      |  R${preco_total:.1f} |\n"
+                resumo += f"{produto[0]}| R${produto[1]                                             :.1f} |     {produto[2]}      |  R${preco_total:.1f} |\n"
     resumo += f"O valor total da compra foi de R${total}\n"
     return resumo
 
@@ -51,8 +52,11 @@ def msg_de_compra(produtos_comprados, nome_do_consumidor):
     return f"+R${total} de {nome_do_consumidor}"
 
 
+server_running = True
+caixa = 0
+
+
 def lidar_com_cliente(client_socket: SocketType, endereco):
-    client_socket.send("Bem vindo ao servidor!".encode("utf-8"))
     while True:
         data = client_socket.recv(1024)
         if not data:
@@ -69,7 +73,7 @@ def lidar_com_cliente(client_socket: SocketType, endereco):
 
         produtos = []
         menu = ""
-        caixa = 0
+        global caixa 
 
         # Se data for V cria o menu com as verduras se for F cria o menu com as frutas
         if data == "V":
@@ -119,23 +123,43 @@ def lidar_com_cliente(client_socket: SocketType, endereco):
     client_socket.close()
 
 
-server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-endereco = ("localhost", 8080)
-server_socket.bind(endereco)
-server_socket.listen(5)
+def aceitar_conexoes(server_socket):
+    global server_running
+    while server_running:
+        try:
+            client_socket, address = server_socket.accept()
+            print(f"Conexão estabelecida com {address[0]}:{address[1]}")
 
-print(f"Servidor escutando em {endereco[0]}:{endereco[1]}")
+            thread_cliente = threading.Thread(
+                target=lidar_com_cliente, args=(client_socket, address), daemon=True)
+            thread_cliente.start()
+        except OSError:
+            break
 
-while True:
+
+def iniciar_servidor():
+    global server_running
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    endereco = ("localhost", 8080)
+    server_socket.bind(endereco)
+    server_socket.listen(5)
+
+    print(f"Servidor escutando em {endereco[0]}:{endereco[1]}")
+
+    # Inicia a thread para aceitar conexões
+    thread_aceitar_conexoes = threading.Thread(
+        target=aceitar_conexoes, args=(server_socket,))
+    thread_aceitar_conexoes.start()
+
     try:
-        client_socket, address = server_socket.accept()
-        print(f"Conexão estabelecida com {address[0]}:{address[1]}")
-
-        thread_cliente = threading.Thread(
-            target=lidar_com_cliente, args=(client_socket, address))
-        thread_cliente.start()
+        while server_running:
+            pass
     except KeyboardInterrupt:
-        print("Servidor Encerrado!")
-        break
+        print("Servidor Encerrando...")
+    finally:
+        server_running = False
+        server_socket.close()
 
-server_socket.close()
+
+if __name__ == "__main__":
+    iniciar_servidor()
