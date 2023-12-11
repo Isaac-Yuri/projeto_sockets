@@ -31,8 +31,24 @@ def montar_resumo_compra(produtos_comprados):
                 resumo += f"{produto[0]}| R${produto[1]:.1f} |     {produto[2]}      |  R${preco_total:.1f}  |\n"
             else:
                 resumo += f"{produto[0]}| R${produto[1]:.1f} |     {produto[2]}      |  R${preco_total:.1f} |\n"
-    resumo += f"O valor total da compra foi de R${total}"
+    resumo += f"O valor total da compra foi de R${total}\n"
     return resumo
+
+
+def somar_ao_caixa(caixa: int, produtos_comprados):
+    total = 0
+    for produto in produtos_comprados:
+        preco_total = produto[1] * produto[2]
+        total += preco_total
+    caixa += total
+
+
+def msg_de_compra(produtos_comprados, nome_do_consumidor):
+    total = 0
+    for produto in produtos_comprados:
+        preco_total = produto[1] * produto[2]
+        total += preco_total
+    return f"+R${total} de {nome_do_consumidor}"
 
 
 def lidar_com_cliente(client_socket: SocketType, endereco):
@@ -53,6 +69,7 @@ def lidar_com_cliente(client_socket: SocketType, endereco):
 
         produtos = []
         menu = ""
+        caixa = 0
 
         # Se data for V cria o menu com as verduras se for F cria o menu com as frutas
         if data == "V":
@@ -84,9 +101,17 @@ def lidar_com_cliente(client_socket: SocketType, endereco):
                     produto_comprado = [produto[0], produto[1],
                                         produto_no_carrinho["quantidade"]]
                     produtos_comprados.append(produto_comprado)
-        
+
+        # Envia o resumo da compra
         resumo_da_compra = montar_resumo_compra(produtos_comprados)
         client_socket.send(resumo_da_compra.encode())
+
+        # Recebe a confirmação de compra
+        data = client_socket.recv(1024).decode()
+        if data == "S":
+            # Soma o valor da compra ao caixa
+            somar_ao_caixa(caixa, produtos_comprados)
+            print(msg_de_compra(produtos_comprados, nome[0]))
 
         # Mensagem de encerramento da conexão
         print(f"Conexão com {nome[0]} foi encerrada.")

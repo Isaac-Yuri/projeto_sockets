@@ -42,19 +42,25 @@ while True:
         produtos_comprados = json.dumps(produtos_comprados)
         cliente.send(produtos_comprados.encode())
 
-        # Recebe o resumo da compra 
+        # Recebe o resumo da compra
         resposta = cliente.recv(1024).decode()
         linha()
         print("Logo abaixo está o resumo da sua compra.")
         print(resposta, end="")
+        linha(50)
+        confirmar_compra = input(
+            "Deseja confirmar a compra? Digite S pra sim e N para não: ").upper()
+        if confirmar_compra == "S":
+            cliente.send(confirmar_compra.encode())
+            print("Pagamento confirmado! Volte Sempre! :)")
         break
 
     quantidade = int(input("Quantas unidades deseja comprar? "))
     produto = {"id": id_produto, "quantidade": quantidade}
     confirmar = input(f"""Então você quer {produto['quantidade']} unidades do produto com id {produto['id']}?
-Digite 0 para confirmar ou 1 para cancelar a compra: """)
+Digite S para confirmar ou N para cancelar a compra: """)
 
-    if confirmar == "0":
+    if confirmar.upper() == "S":
         # Adiciona o produto na lista de compras
         produtos_comprados.append(produto)
         print("Produto adicionado com sucesso a lista de compras!")
