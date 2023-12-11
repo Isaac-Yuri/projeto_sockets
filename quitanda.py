@@ -23,33 +23,48 @@ def montar_resumo_compra(produtos_comprados):
         # Os ifs abaixo são para questão de layout do resumo
         if produto[2] >= 10:
             if preco_total < 10:
-                resumo += f"{produto[0]}| R${produto[1]                                             :.1f} |     {produto[2]}     |  R${preco_total:.1f}  |\n"
+                resumo += f"{produto[0]}| R${produto[1]:.1f} |     {produto[2]}     |  R${preco_total:.1f}  |\n"
             else:
-                resumo += f"{produto[0]}| R${produto[1]                                             :.1f} |     {produto[2]}     |  R${preco_total:.1f} |\n"
+                resumo += f"{produto[0]}| R${produto[1]:.1f} |     {produto[2]}     |  R${preco_total:.1f} |\n"
         else:
             if preco_total < 10:
-                resumo += f"{produto[0]}| R${produto[1]:.1f} |     {
-                    produto[2]}      |  R${preco_total:.1f}  |\n"
+                resumo += f"{produto[0]}| R${produto[1]:.1f} |     {produto[2]}      |  R${preco_total:.1f}  |\n"
             else:
-                resumo += f"{produto[0]}| R${produto[1]                                             :.1f} |     {produto[2]}      |  R${preco_total:.1f} |\n"
+                resumo += f"{produto[0]}| R${produto[1]:.1f} |     {produto[2]}      |  R${preco_total:.1f} |\n"
     resumo += f"O valor total da compra foi de R${total}\n"
     return resumo
 
 
-def somar_ao_caixa(caixa: int, produtos_comprados):
+def somar_ao_caixa(produtos_comprados):
     total = 0
     for produto in produtos_comprados:
         preco_total = produto[1] * produto[2]
         total += preco_total
-    caixa += total
+    return total
 
 
 def msg_de_compra(produtos_comprados, nome_do_consumidor):
-    total = 0
-    for produto in produtos_comprados:
-        preco_total = produto[1] * produto[2]
-        total += preco_total
+    total = somar_ao_caixa(produtos_comprados)
     return f"+R${total} de {nome_do_consumidor}"
+
+
+def gerar_cupom(produtos_comprados, nome_do_consumidor):
+    cupom_nome = f'Cupom_{nome_do_consumidor}.txt'
+    with open(cupom_nome, 'w') as cupom:
+        cupom.write(f"Cupom Fiscal\n")
+        cupom.write(f"Nome do consumidor: {nome_do_consumidor}\n\n")
+        cupom.write(f"PRODUTO  | PREÇO | QUANTIDADE | TOTAL\n")
+        total = 0
+        for produto in produtos_comprados:
+            preco_total = produto[1] * produto[2]
+            total += preco_total
+            nome_produto = produto[0]
+            preco = f"R${produto[1]:.1f}"
+            quantidade = produto[2]
+            preco_total_formatado = f"R${preco_total:.1f}"
+            # Formatação para alinhar os detalhes do cupom
+            cupom.write(f"{nome_produto.ljust(9)} | {preco.ljust(5)} | {str(quantidade).ljust(10)} | {preco_total_formatado}\n")
+        cupom.write(f"\nValor total da compra: R${total:.1f}\n")
 
 
 server_running = True
@@ -73,7 +88,7 @@ def lidar_com_cliente(client_socket: SocketType, endereco):
 
         produtos = []
         menu = ""
-        global caixa 
+        global caixa
 
         # Se data for V cria o menu com as verduras se for F cria o menu com as frutas
         if data == "V":
@@ -113,9 +128,15 @@ def lidar_com_cliente(client_socket: SocketType, endereco):
         # Recebe a confirmação de compra
         data = client_socket.recv(1024).decode()
         if data == "S":
-            # Soma o valor da compra ao caixa
-            somar_ao_caixa(caixa, produtos_comprados)
+            # Atualiza o caixa e gera o cupom fiscal
+            valor_compra = somar_ao_caixa(produtos_comprados)
+            caixa += valor_compra
+            gerar_cupom(produtos_comprados, nome[0])
             print(msg_de_compra(produtos_comprados, nome[0]))
+            # Envia o cupom fiscal para o consumidor
+            with open(f'Cupom_{nome[0]}.txt', 'r') as cupom:
+                cupom_data = cupom.read()
+                client_socket.send(cupom_data.encode())
 
         # Mensagem de encerramento da conexão
         print(f"Conexão com {nome[0]} foi encerrada.")
@@ -155,6 +176,7 @@ def iniciar_servidor():
         while server_running:
             pass
     except KeyboardInterrupt:
+        print(f"Total acumulado pela quitanda: R${caixa}")
         print("Servidor Encerrando...")
     finally:
         server_running = False

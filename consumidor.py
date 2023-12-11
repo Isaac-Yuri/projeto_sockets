@@ -50,6 +50,21 @@ while True:
         if confirmar_compra == "S":
             cliente.send(confirmar_compra.encode())
             print("Pagamento confirmado! Volte Sempre! :)")
+
+            # Recebe o cupom fiscal do servidor
+            cupom_fiscal = cliente.recv(4096).decode()
+
+            # Nome do arquivo baseado no nome do consumidor
+            nome_arquivo = f'Cupom_Fiscal_{msg.split()[0]}.txt'
+            with open(nome_arquivo, 'w') as arquivo:
+                arquivo.write(cupom_fiscal)
+                print(f"Cupom Fiscal salvo como {nome_arquivo}")
+
+            # Exibe o cupom fiscal recebido
+            print("Cupom Fiscal:")
+            print(cupom_fiscal)
+        else:
+            print("Compra não efetuada! Volte Sempre! :)")
         break
 
     quantidade = int(input("Quantas unidades deseja comprar? "))
